@@ -54,9 +54,23 @@ def findSteps(route, startTime = 7600, endTime = 9600):
 
 def findStepsWindow(route, startTime = 7200, endTime = None, twindow = 600):
     if(endTime):
-        return(findSteps(route, startTime-twindow, endTime + twindow))
-    return(findSteps(route, startTime-twindow, startTime+twindow))
+        eT = endTime + twindow
+    else:
+        eT = startTime + twindow
+    sT = startTime-twindow
+    steps = findSteps(route, sT, eT)
+    if ((steps[0][1]>sT-2) & (sWindow[0][1]<sT+2)):
+        return steps
+    else:
+        sL = route.json()['routes'][0]['legs'][0]['steps'][steps[0][0]]['start_location']
+        eL = route.json()['routes'][0]['legs'][0]['steps'][steps[0][0]]['end_location']
+        findStepsWindow(getGMapRoute(origin = '{},{}'.format(sL['lat'],sL['lng']), 
+                             destination ='{},{}'.format(eL['lat'],sL['lng']),
+                             key = ''), startTime = startTime-steps[0][1], endTime = eT-steps[0][1])
         
+
+
+route.json()['routes'][0]['legs'][0]['steps'][14]['start_location']
 
 route = getGMapRoute()
 print(route.status_code)
