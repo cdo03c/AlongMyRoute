@@ -13,7 +13,7 @@ import requests
 #origin, destination, and google maps API key, and returns data from the Google
 #maps API in the specified format.
 def getGMapRoute(output = 'json',
-                 origin = '7341+Crestleigh+Circle+Alexandria+VA',
+                 origin = '7905+Hilltop+Village+Center+Dr+Alexandria+VA',
                  destination = 'Chicago+IL',
                  mode = '',
                  arrival_time = '',
