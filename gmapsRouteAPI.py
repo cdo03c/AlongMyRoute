@@ -7,17 +7,18 @@ Created on Tue Jul 11 16:19:51 2017
 """
 
 #Import python libraries
-import requests
+#import requests
 import googlemaps
-
+from datetime import timedelta
 
 
 def findStep(route, time = 7200):
+    '''The findStep function '''
     step = 0
     cumTime = 0
     while True:
         try:
-            duration = route.json()['routes'][0]['legs'][0]['steps'][step]['duration']['value']
+            duration = route[0]['legs'][0]['steps'][step]['duration']['value']
             cumTime += duration
         except IndexError:
             print("The time you searched for is longer than the length of this leg of your journey.")
@@ -31,12 +32,26 @@ def findSteps(route, startTime = 7600, endTime = 9600):
     return(findStep(route, startTime), findStep(route, endTime))
 
 def findStepsWindow(route, startTime = 7200, endTime = None, twindow = 600):
+    '''The findStepsWindow takes a googlemaps route, start time, time window,
+    and possibly and end time and returns the location of the waypoint(s) along
+    the route that falls within time parameters.'''
+    
+    #Sets the end Time (eT) variable by testing if the endTime parameter is null
+    #If not null eT is set to the defined endTime plus the time window buffer
+    #If null eT is set to the startTime plus the time window buffer
     if(endTime):
         eT = endTime + twindow
     else:
         eT = startTime + twindow
+        
+    #Sets the start time (sT) variable parameter by subtracting the time window
+    #from the startTime parameter
     sT = startTime-twindow
+    
+    #Calls the findSteps function which returns a 
     steps = findSteps(route, sT, eT)
+    
+    buffer = tWindow/5
     if ((steps[0][1]>sT-2) & (sWindow[0][1]<sT+2)):
         return steps
     else:
@@ -48,7 +63,7 @@ def findStepsWindow(route, startTime = 7200, endTime = None, twindow = 600):
         
 
 
-route.json()['routes'][0]['legs'][0]['steps'][14]['start_location']
+#route.json()['routes'][0]['legs'][0]['steps'][14]['start_location']
 
 #Sets up the client for google maps
 gmaps = googlemaps.Client(key='Add Your Key here')
@@ -56,10 +71,20 @@ gmaps = googlemaps.Client(key='Add Your Key here')
 #Sets variables for directions
 origin = 'Lexington+MA'
 destination = 'Chicago+IL'
+startTime = timedelta(hours=2, minutes = 30)
+timeWindow = timedelta(minutes = 10)
 
-route = gmaps.directions(origin, destination)
-print(route.status_code)
+#Retrieves the route between an origin and destination using the directions
+#function from the googlemaps library
+route = gmaps.directions(origin, destination, output = 'json')
+window = findStepsWindow(route,
+                         startTime = startTime.seconds,
+                         endTime = None,
+                         twindow = timeWindow.seconds)
+#print(route.status_code)
 #route.json()
+
+
 
 #The route call to gmap has a json function that returns a dictionary with the
 #following keys.
