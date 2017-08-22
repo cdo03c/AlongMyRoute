@@ -8,7 +8,8 @@ Created on Tue Jul 11 16:19:51 2017
 
 #Import python libraries
 #import requests
-import googlemaps
+#import googlemaps
+from googlemaps import directions, Client
 from datetime import timedelta
 
 
@@ -61,18 +62,18 @@ def findStepsWindow(route, startTime = 7200, endTime = None, twindow = 600):
             #with closest steps for start and end locations
             sL = route[0]['legs'][0]['steps'][steps[0][0]]['start_location']
             eL = route[0]['legs'][0]['steps'][steps[0][0]]['end_location']
-            return(findStepsWindow(gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
+            return(findStepsWindow(directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
                                              destination ='{},{}'.format(eL['lat'],sL['lng'])),
                             startTime = startTime-steps[0][1],
                             endTime = eTW-steps[0][1]))
         else:
-            return(findStepsWindow(gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
+            return(findStepsWindow(directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
                                              destination ='{},{}'.format(eL['lat'],sL['lng'])),
                             startTime = startTime-steps[0][1],
                             endTime = eTW-steps[0][1]))
     else:
         if(not((steps[1][1]>endTime) & (steps[1][1]<eTW))):
-            return(findStepsWindow(gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
+            return(findStepsWindow(directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
                                              destination ='{},{}'.format(eL['lat'],sL['lng'])),
                             startTime = startTime-steps[0][1],
                             endTime = eTW-steps[0][1]))
@@ -80,7 +81,7 @@ def findStepsWindow(route, startTime = 7200, endTime = None, twindow = 600):
             return(steps)
 
 #Sets up the client for google maps
-gmaps = googlemaps.Client(key='Add Your Key here')
+gmaps = Client(key='Add Your Key here')
 
 #Sets variables for directions
 origin = 'Lexington+MA'
