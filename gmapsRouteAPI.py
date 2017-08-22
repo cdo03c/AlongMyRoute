@@ -8,30 +8,8 @@ Created on Tue Jul 11 16:19:51 2017
 
 #Import python libraries
 import requests
+import googlemaps
 
-#Creates a function called getGMapRoute that takes as input the output format,
-#origin, destination, and google maps API key, and returns data from the Google
-#maps API in the specified format.
-def getGMapRoute(output = 'json',
-                 origin = '7905+Hilltop+Village+Center+Dr+Alexandria+VA',
-                 destination = 'Chicago+IL',
-                 mode = '',
-                 arrival_time = '',
-                 departure_time = '',
-                 key = ''):
-    gmapscall = 'https://maps.googleapis.com/maps/api/directions/{}?'.format(output)
-    if(origin):
-        gmapscall += 'origin={}&'.format(origin)
-    if(destination):
-        gmapscall += 'destination={}&'.format(destination)
-    if(mode):
-        gmapscall += 'mode={}&'.format(mode)
-    if(arrival_time):
-        gmapscall += 'arrival_time={}&'.format(arrival_time)
-    if(departure_time):
-        gmapscall += 'departure_time={}&'.format(departure_time)
-    gmapscall += 'key={}'.format(key)
-    return(requests.get(gmapscall))
 
 
 def findStep(route, time = 7200):
@@ -72,7 +50,14 @@ def findStepsWindow(route, startTime = 7200, endTime = None, twindow = 600):
 
 route.json()['routes'][0]['legs'][0]['steps'][14]['start_location']
 
-route = getGMapRoute()
+#Sets up the client for google maps
+gmaps = googlemaps.Client(key='Add Your Key here')
+
+#Sets variables for directions
+origin = 'Lexington+MA'
+destination = 'Chicago+IL'
+
+route = gmaps.directions(origin, destination)
 print(route.status_code)
 #route.json()
 
