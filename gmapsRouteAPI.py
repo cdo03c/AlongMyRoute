@@ -7,8 +7,6 @@ Created on Tue Jul 11 16:19:51 2017
 """
 
 #Import python libraries
-#import requests
-#import googlemaps
 from googlemaps import directions, Client
 from datetime import timedelta
 
@@ -80,24 +78,25 @@ def findStepsWindow(route, startTime = 7200, endTime = None, twindow = 600):
         else:
             return(steps)
 
-#Sets up the client for google maps
-gmaps = Client(key='Add Your Key here')
+if(__name__ == "__main__"):
 
-#Sets variables for directions
-origin = 'Lexington+MA'
-destination = 'Chicago+IL'
-startTime = timedelta(hours=2, minutes = 30)
-timeWindow = timedelta(minutes = 10)
+    #Sets up the client for google maps
+    gmaps = Client(key='Add Your Key here')
 
-#Retrieves the route between an origin and destination using the directions
-#function from the googlemaps library
-route = gmaps.directions(origin, destination, output = 'json')
-window = findStepsWindow(route,
-                         startTime = startTime.seconds,
-                         endTime = None,
-                         twindow = timeWindow.seconds)
-#print(route.status_code)
-#route.json()
+    #Sets variables for directions
+    origin = 'Lexington+MA'
+    destination = 'Chicago+IL'
+    startTime = timedelta(hours=2, minutes = 30)
+    timeWindow = timedelta(minutes = 10)
+
+    #Retrieves the route between an origin and destination using the directions
+    #function from the googlemaps library
+    route = gmaps.directions(origin, destination, output = 'json')
+    window = findStepsWindow(route,
+                             startTime = startTime.seconds,
+                             endTime = None,
+                             twindow = timeWindow.seconds)
+
 
 
 # =============================================================================
