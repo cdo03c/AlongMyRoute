@@ -54,24 +54,26 @@ def findStepsWindow(route, startTime = 7200, endTime = None, twindow = 600):
     
     #Tests if the start time does not fall within the time window
     if(not((steps[0][1]>sTW) & (steps[0][1]<startTime))):
-        #Tests if the end time falls within the time window
+        #Tests if the end time does not fall within the time window
         if(not((steps[1][1]>endTime) & (steps[1][1]<eTW))):
             #If both start time and end time fail, recursive call the function
             #with closest steps for start and end locations
+            #Start Location (sL): start location of the step containing the start time
+            #End Location (eL): start location of the step containing the end time
             sL = route[0]['legs'][0]['steps'][steps[0][0]]['start_location']
-            eL = route[0]['legs'][0]['steps'][steps[0][0]]['end_location']
-            return(findStepsWindow(directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
+            eL = route[0]['legs'][0]['steps'][steps[1][0]]['start_location']
+            return(findStepsWindow(gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
                                              destination ='{},{}'.format(eL['lat'],sL['lng'])),
                             startTime = startTime-steps[0][1],
-                            endTime = eTW-steps[0][1]))
+                            endTime = eTW-steps[1][1]))
         else:
-            return(findStepsWindow(directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
-                                             destination ='{},{}'.format(eL['lat'],sL['lng'])),
+            return(findStepsWindow(gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
+                                             destination ='{},{}'.format(eL['lat'],eL['lng'])),
                             startTime = startTime-steps[0][1],
                             endTime = eTW-steps[0][1]))
     else:
         if(not((steps[1][1]>endTime) & (steps[1][1]<eTW))):
-            return(findStepsWindow(directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
+            return(findStepsWindow(gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
                                              destination ='{},{}'.format(eL['lat'],sL['lng'])),
                             startTime = startTime-steps[0][1],
                             endTime = eTW-steps[0][1]))
@@ -91,7 +93,7 @@ if(__name__ == "__main__"):
 
     #Retrieves the route between an origin and destination using the directions
     #function from the googlemaps library
-    route = gmaps.directions(origin, destination, output = 'json')
+    route = gmaps.directions(origin, destination)
     window = findStepsWindow(route,
                              startTime = startTime.seconds,
                              endTime = None,
