@@ -11,7 +11,7 @@ from googlemaps import Client
 from datetime import timedelta
 from math import radians, cos, sin, asin, sqrt
 
-def haversine(lon1, lat1, lon2, lat2):
+def haversine(lon1, lat1, lon2, lat2, miles = True):
     """
     Calculate the great circle distance between two points 
     on the earth (specified in decimal degrees)
@@ -23,9 +23,20 @@ def haversine(lon1, lat1, lon2, lat2):
     dlon = lon2 - lon1 
     dlat = lat2 - lat1 
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a)) 
-    r = 6371 # Radius of earth in kilometers. Use 3956 for miles
+    c = 2 * asin(sqrt(a))
+    if(miles):
+        r = 3956 # Radius of the earth in miles.
+    else:
+       r = 6371 # Radius of earth in kilometers.
     return c * r
+
+def findWaypoint(lon1, lat1, lon2, lat2, d=1):
+    hyp = haversine(lon1, lat1, lon2, lat2)
+    adj = haversine(lon1, lat1, lon1, lat2)
+    opp = haversine(lon2, lat2, lon1, lat2)
+    newAdj = (adj * d)/hyp
+    newOpp = (opp * d)/hyp
+    return('via:{}%2C{}%7C'.format(lat1+newAdj,lon1+newOpp))
 
 
 def findStep(route, time = 7200):
@@ -80,15 +91,17 @@ def findStepWindow(route, time = 7200, twindow = 600, start = True, recur = 0):
     sL = route[0]['legs'][0]['steps'][step[0]]['start_location']
     eL = route[0]['legs'][0]['steps'][step[0]]['end_location']
     time = time-step[1]
-    dist = (route[0]['legs'][0]['steps'][step[0]]['end_location']['lng'] \
-            - route[0]['legs'][0]['steps'][step[0]]['start_location']['lng']) \
-            / (route[0]['legs'][0]['steps'][step[0]]['end_location']['lat'] \
-            - route[0]['legs'][0]['steps'][step[0]]['start_location']['lat'])
+    
+    #via:-37.81223%2C144.96254%7C
+    wp = findWaypoint(route[0]['legs'][0]['steps'][step[0]]['start_location']['lng'],
+                     route[0]['legs'][0]['steps'][step[0]]['start_location']['lat'],
+                     route[0]['legs'][0]['steps'][step[0]]['end_location']['lng'],
+                     route[0]['legs'][0]['steps'][step[0]]['end_location']['lat'],
+                     d = .01)
 
     route = gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
                              destination ='{},{}'.format(eL['lat'],eL['lng']),
-     #FIX THIS                        waypoints = via:-37.81223%2C144.96254%7C
-                             )
+                             waypoints = wp)
     recur += 1
     return(findStepWindow(route, time, twindow, start, recur))
 
