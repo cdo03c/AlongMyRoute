@@ -7,14 +7,33 @@ Created on Tue Jul 11 16:19:51 2017
 """
 
 #Import python libraries
-from googlemaps import directions, Client
+from googlemaps import Client
 from datetime import timedelta
+from math import radians, cos, sin, asin, sqrt
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points 
+    on the earth (specified in decimal degrees)
+    """
+    # convert decimal degrees to radians 
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula 
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    r = 6371 # Radius of earth in kilometers. Use 3956 for miles
+    return c * r
 
 
 def findStep(route, time = 7200):
-    '''The findStep function takes a google maps route and a time as inputs
+    '''
+    The findStep function takes a google maps route and a time as inputs
     and returns a tuple containing the step of the route plus the beginning and
-    end time of the step in which the time falls within the overall route.'''
+    end time of the step in which the time falls within the overall route.
+    '''
     step = 0
     cumTime = 0
     while True:
@@ -29,56 +48,102 @@ def findStep(route, time = 7200):
             break
         step += 1
 
-def findSteps(route, startTime = 7600, endTime = 9600):
-    return(findStep(route, startTime), findStep(route, endTime))
+# =============================================================================
+# def findSteps(route, startTime = 7600, endTime = 9600):
+#     return(findStep(route, startTime), findStep(route, endTime))
+# =============================================================================
 
-def findStepsWindow(route, startTime = 7200, endTime = None, twindow = 600):
-    '''The findStepsWindow takes a googlemaps route, start time, time window,
-    and possibly and end time and returns the location of the waypoint(s) along
-    the route that falls within time parameters.'''
+def findStepWindow(route, time = 7200, twindow = 600, start = True, recur = 0):
+    '''
+    The findStepsWindow takes a googlemaps route, time, time window, and
+    a boolean variable for whether the time provided is the start time as
+    input and returns the location of the waypoint along
+    the route that falls within time parameters.
+    '''
+    
+    #Calls the findStep function which returns a tuple containing the 
+    step = findStep(route, time)
     
     #Sets the start time window (sTW) variable parameter by subtracting the 
     #time window from the startTime parameter
-    sTW = startTime-twindow
-    
-    #Sets endTime to startTime if endTime is null
-    if(not endTime):
-        endTime = startTime
-        
-    #Sets the end time window (eTW) variable parameter by subtracting the 
-    #time window from the endTime parameter
-    eTW = startTime + twindow
-    
-    #Calls the findSteps function which returns a 
-    steps = findSteps(route, sTW, eTW)
-    
-    #Tests if the start time does not fall within the time window
-    if(not((steps[0][1]>sTW) & (steps[0][1]<startTime))):
-        #Tests if the end time does not fall within the time window
-        if(not((steps[1][1]>endTime) & (steps[1][1]<eTW))):
-            #If both start time and end time fail, recursive call the function
-            #with closest steps for start and end locations
-            #Start Location (sL): start location of the step containing the start time
-            #End Location (eL): start location of the step containing the end time
-            sL = route[0]['legs'][0]['steps'][steps[0][0]]['start_location']
-            eL = route[0]['legs'][0]['steps'][steps[1][0]]['start_location']
-            return(findStepsWindow(gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
-                                             destination ='{},{}'.format(eL['lat'],sL['lng'])),
-                            startTime = startTime-steps[0][1],
-                            endTime = eTW-steps[1][1]))
-        else:
-            return(findStepsWindow(gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
-                                             destination ='{},{}'.format(eL['lat'],eL['lng'])),
-                            startTime = startTime-steps[0][1],
-                            endTime = eTW-steps[0][1]))
+    if(start):
+        sTW = time - twindow
+        eTW = time
     else:
-        if(not((steps[1][1]>endTime) & (steps[1][1]<eTW))):
-            return(findStepsWindow(gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
-                                             destination ='{},{}'.format(eL['lat'],sL['lng'])),
-                            startTime = startTime-steps[0][1],
-                            endTime = eTW-steps[0][1]))
-        else:
-            return(steps)
+        sTW = time
+        eTW = time + twindow
+    
+    #Tests if the time falls within the time window
+    if(((step[1]>=sTW) & (step[1]<=eTW)) or recur > 5):
+        return(step, recur)
+
+    sL = route[0]['legs'][0]['steps'][step[0]]['start_location']
+    eL = route[0]['legs'][0]['steps'][step[0]]['end_location']
+    time = time-step[1]
+    dist = (route[0]['legs'][0]['steps'][step[0]]['end_location']['lng'] \
+            - route[0]['legs'][0]['steps'][step[0]]['start_location']['lng']) \
+            / (route[0]['legs'][0]['steps'][step[0]]['end_location']['lat'] \
+            - route[0]['legs'][0]['steps'][step[0]]['start_location']['lat'])
+
+    route = gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
+                             destination ='{},{}'.format(eL['lat'],eL['lng']),
+     #FIX THIS                        waypoints = via:-37.81223%2C144.96254%7C
+                             )
+    recur += 1
+    return(findStepWindow(route, time, twindow, start, recur))
+
+# =============================================================================
+# #def findStepsWindow(route, startTime = 7200, endTime = None, twindow = 600):
+# #    '''The findStepsWindow takes a googlemaps route, start time, time window,
+# #    and possibly and end time and returns the location of the waypoint(s) along
+# #    the route that falls within time parameters.'''
+# #    
+# #    #Sets the start time window (sTW) variable parameter by subtracting the 
+# #    #time window from the startTime parameter
+# #    sTW = startTime-twindow
+# #    
+# #    #Sets endTime to startTime if endTime is null
+# #    if(not endTime):
+# #        endTime = startTime
+# #        
+# #    #Sets the end time window (eTW) variable parameter by subtracting the 
+# #    #time window from the endTime parameter
+# #    eTW = endTime + twindow
+# #    
+# #    #Calls the findSteps function which returns a 
+# #    steps = findSteps(route, sTW, eTW)
+# #    
+# #    #Tests if the start time does not fall within the time window
+# #    if(not((steps[0][1]>=sTW) & (steps[0][1]<=startTime))):
+# #        #Tests if the end time does not fall within the time window
+# #        if(not((steps[1][1]>=endTime) & (steps[1][1]<=eTW))):
+# #            #If both start time and end time fail, recursive call the function
+# #            #with closest steps for start and end locations
+# #            #Start Location (sL): start location of the step containing the start time
+# #            #End Location (eL): start location of the step containing the end time
+# #            sL = route[0]['legs'][0]['steps'][steps[0][0]]['start_location']
+# #            eL = route[0]['legs'][0]['steps'][steps[1][0]]['start_location']
+# #            return(findSteps(gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
+# #                                                    destination ='{},{}'.format(eL['lat'],sL['lng'])),
+# #                                    startTime = startTime-steps[0][1],
+# #                                    endTime = eTW-steps[1][1]))
+# #        else:
+# #            sL = route[0]['legs'][0]['steps'][steps[0][0]]['start_location']
+# #            eL = route[0]['legs'][0]['steps'][len(route[0]['legs'][0]['steps'])-1]['end_location']
+# #            startTime = startTime-steps[0][1]
+# #            endTime = eTW-steps[0][1]
+# #    else:
+# #        if(not((steps[1][1]>=endTime) & (steps[1][1]<=eTW))):
+# #            sL = route[0]['legs'][0]['steps'][steps[0][0]]['start_location']
+# #            eL = route[0]['legs'][0]['steps'][steps[1][0]]['end_location']
+# #            startTime = twindow
+# #            endTime = eTW-steps[0][1]
+# #        else:
+# #            return(steps)
+# #    route = gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
+# #                             destination ='{},{}'.format(eL['lat'],eL['lng']))
+# #    return(findStepsWindow(route, startTime,endTime))
+# =============================================================================
 
 if(__name__ == "__main__"):
 
@@ -94,10 +159,12 @@ if(__name__ == "__main__"):
     #Retrieves the route between an origin and destination using the directions
     #function from the googlemaps library
     route = gmaps.directions(origin, destination)
-    window = findStepsWindow(route,
-                             startTime = startTime.seconds,
-                             endTime = None,
-                             twindow = timeWindow.seconds)
+    startWindow, sRecur = findStepWindow(route, time = startTime.seconds,
+                                   twindow = timeWindow.seconds)
+    endWindow, eRecur = findStepWindow(route, time = startTime.seconds+3600,
+                                   twindow = timeWindow.seconds,
+                                   start = False)
+    
 
 
 
