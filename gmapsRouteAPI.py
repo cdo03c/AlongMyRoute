@@ -36,7 +36,7 @@ def findWaypoint(lon1, lat1, lon2, lat2, d=1):
     opp = haversine(lon2, lat2, lon1, lat2)
     newAdj = (adj * d)/hyp
     newOpp = (opp * d)/hyp
-    return('via:{}%2C{}%7C'.format(lat1+newAdj,lon1+newOpp))
+    return('via:{}%2C{}'.format(lat1+newAdj,lon1+newOpp))
 
 
 def findStep(route, time = 7200):
@@ -84,23 +84,25 @@ def findStepWindow(route, time = 7200, twindow = 600, start = True, recur = 0):
         sTW = time
         eTW = time + twindow
     
-    #Tests if the time falls within the time window
-    if(((step[1]>=sTW) & (step[1]<=eTW)) or recur > 5):
-        return(step, recur)
-
+    
     sL = route[0]['legs'][0]['steps'][step[0]]['start_location']
     eL = route[0]['legs'][0]['steps'][step[0]]['end_location']
+
+    #Tests if the time falls within the time window
+    if(((step[1]>=sTW) & (step[1]<=eTW)) or recur > 20):
+        return(step, recur, sL)
+
     time = time-step[1]
     
-    #via:-37.81223%2C144.96254%7C
     wp = findWaypoint(route[0]['legs'][0]['steps'][step[0]]['start_location']['lng'],
                      route[0]['legs'][0]['steps'][step[0]]['start_location']['lat'],
                      route[0]['legs'][0]['steps'][step[0]]['end_location']['lng'],
                      route[0]['legs'][0]['steps'][step[0]]['end_location']['lat'],
                      d = .01)
+    #route[0]['legs'][0]['steps'][step[0]]['polyline']['points']
 
     route = gmaps.directions(origin = '{},{}'.format(sL['lat'],sL['lng']),
-                             destination ='{},{}'.format(eL['lat'],eL['lng']),
+                             destination ='{},{}'.format(eL['lat'],eL['lng']), 
                              waypoints = wp)
     recur += 1
     return(findStepWindow(route, time, twindow, start, recur))
@@ -172,9 +174,9 @@ if(__name__ == "__main__"):
     #Retrieves the route between an origin and destination using the directions
     #function from the googlemaps library
     route = gmaps.directions(origin, destination)
-    startWindow, sRecur = findStepWindow(route, time = startTime.seconds,
+    startWindow, sRecur, sLoc = findStepWindow(route, time = startTime.seconds,
                                    twindow = timeWindow.seconds)
-    endWindow, eRecur = findStepWindow(route, time = startTime.seconds+3600,
+    endWindow, eRecur, eLoc = findStepWindow(route, time = startTime.seconds+3600,
                                    twindow = timeWindow.seconds,
                                    start = False)
     
