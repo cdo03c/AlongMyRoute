@@ -24,40 +24,26 @@ now = datetime.now()
 #Creates a function called get_sample_route that takes as input the output format,
 #origin, destination, and google maps API key, and returns data from the Google
 #maps API in the specified format.
-# def get_sample_route(output = 'json',
-#                  origin = '7341+Crestleigh+Circle+Alexandria+VA',
-#                  destination = 'Chicago+IL',
-#                  mode,
-#                  arrival_time,
-#                  departure_time,
-#                  key):
-#     gmapscall = 'https://maps.googleapis.com/maps/api/directions/{}?'.format(output)
-#     if(origin):
-#         gmapscall += 'origin={}&'.format(origin)
-#     if(destination):
-#         gmapscall += 'destination={}&'.format(destination)
-#     if(mode):
-#         gmapscall += 'mode={}&'.format(mode)
-#     if(arrival_time):
-#         gmapscall += 'arrival_time={}&'.format(arrival_time)
-#     if(departure_time):
-#         gmapscall += 'departure_time={}&'.format(departure_time)
-#     gmapscall += 'key={}'.format(key)
-#     return(requests.get(gmapscall))
-
-
-def get_sample_route(output='json',
-                    origin = '7341+Crestleigh+Circle+Alexandria+VA',
-                    destination = 'Chicago+IL',
-                    mode='',
-                    arrival_time='',
-                    departure_time='',
-                    key=API_KEY):
-    return gmaps.directions(origin=origin,
-                            destination=destination,
-                            mode=mode,
-                            arrival_time=arrival_time,
-                            departure_time=departure_time)
+def getGMapRoute(output = 'json',
+                 origin = '7905+Hilltop+Village+Center+Dr+Alexandria+VA',
+                 destination = 'Chicago+IL',
+                 mode = '',
+                 arrival_time = '',
+                 departure_time = '',
+                 key = ''):
+    gmapscall = 'https://maps.googleapis.com/maps/api/directions/{}?'.format(output)
+    if(origin):
+        gmapscall += 'origin={}&'.format(origin)
+    if(destination):
+        gmapscall += 'destination={}&'.format(destination)
+    if(mode):
+        gmapscall += 'mode={}&'.format(mode)
+    if(arrival_time):
+        gmapscall += 'arrival_time={}&'.format(arrival_time)
+    if(departure_time):
+        gmapscall += 'departure_time={}&'.format(departure_time)
+    gmapscall += 'key={}'.format(key)
+    return(requests.get(gmapscall))
 
 
 def findStep(route, time = 7200):
