@@ -7,9 +7,21 @@ Created on Tue Jul 11 16:19:51 2017
 """
 
 #Import python libraries
-import requests
+import googlemaps
+from datetime import datetime
 
-#Creates a function called getGMapRoute that takes as input the output format,
+#Load API_KEY from api_key.txt
+with open('api_key.txt') as r:
+    API_KEY = r.readlines()
+
+# creating googlemaps connection Client
+gmaps = googlemaps.Client(key=API_KEY)
+
+
+# Request directions via public transit
+now = datetime.now()
+
+#Creates a function called get_sample_route that takes as input the output format,
 #origin, destination, and google maps API key, and returns data from the Google
 #maps API in the specified format.
 def getGMapRoute(output = 'json',
@@ -64,15 +76,16 @@ def findStepsWindow(route, startTime = 7200, endTime = None, twindow = 600):
     else:
         sL = route.json()['routes'][0]['legs'][0]['steps'][steps[0][0]]['start_location']
         eL = route.json()['routes'][0]['legs'][0]['steps'][steps[0][0]]['end_location']
-        findStepsWindow(getGMapRoute(origin = '{},{}'.format(sL['lat'],sL['lng']), 
-                             destination ='{},{}'.format(eL['lat'],sL['lng']),
-                             key = ''), startTime = startTime-steps[0][1], endTime = eT-steps[0][1])
+        findStepsWindow(get_sample_route(origin = '{},{}'.format(sL['lat'],sL['lng']), 
+                             destination ='{},{}'.format(eL['lat'],sL['lng'])), 
+                             startTime = startTime-steps[0][1], 
+                             endTime = eT-steps[0][1])
         
 
 
 route.json()['routes'][0]['legs'][0]['steps'][14]['start_location']
 
-route = getGMapRoute()
+route = get_sample_route()
 print(route.status_code)
 #route.json()
 
